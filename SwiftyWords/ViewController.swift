@@ -157,34 +157,38 @@ class ViewController: UIViewController {
         var clue = "", solutionLetterCounts = "",
             letterGroupStrings: [String] = []
         
-        if let levelFile = Bundle.main.url(forResource: "level\(level)", withExtension: "txt") {
-            if let levelContents = try? String(contentsOf: levelFile) {
-                var lines = levelContents.components(separatedBy: "\n")
-                lines.shuffle()
-                
-                for (index, line) in lines.enumerated() {
-                    let line = line.components(separatedBy: ": "),
-                        answer = line[0],
-                        clueString = line[1]
+        DispatchQueue.global(qos: .background).async {
+            if let levelFile = Bundle.main.url(forResource: "level\(self.level)", withExtension: "txt") {
+                if let levelContents = try? String(contentsOf: levelFile) {
+                    var lines = levelContents.components(separatedBy: "\n")
+                    lines.shuffle()
                     
-                    clue += "\(index + 1). \(clueString)\n"
+                    for (index, line) in lines.enumerated() {
+                        let line = line.components(separatedBy: ": "),
+                            answer = line[0],
+                            clueString = line[1]
+                        
+                        clue += "\(index + 1). \(clueString)\n"
+                        
+                        let word = answer.replacingOccurrences(of: "|", with: "")
+                        solutionLetterCounts += "\(word.count) letters\n"
+                        self.solutions.append(word)
+                        
+                        let letterGroup = answer.components(separatedBy: "|")
+                        letterGroupStrings += letterGroup
+                    }
                     
-                    let word = answer.replacingOccurrences(of: "|", with: "")
-                    solutionLetterCounts += "\(word.count) letters\n"
-                    solutions.append(word)
-                    
-                    let letterGroup = answer.components(separatedBy: "|")
-                    letterGroupStrings += letterGroup
-                }
-                
-                cluesLabel.text = clue.trimmingCharacters(in: .whitespacesAndNewlines)
-                answerLetterCountsLabel.text = solutionLetterCounts.trimmingCharacters(in: .whitespacesAndNewlines)
-                
-                letterGroupStrings.shuffle()
-                
-                if letterGroupStrings.count == letterGroupButtons.count {
-                    for i in 0 ..< letterGroupButtons.count {
-                        letterGroupButtons[i].setTitle(letterGroupStrings[i], for: .normal)
+                    DispatchQueue.main.async {
+                        self.cluesLabel.text = clue.trimmingCharacters(in: .whitespacesAndNewlines)
+                        self.answerLetterCountsLabel.text = solutionLetterCounts.trimmingCharacters(in: .whitespacesAndNewlines)
+                        
+                        letterGroupStrings.shuffle()
+                        
+                        if letterGroupStrings.count == self.letterGroupButtons.count {
+                            for i in 0 ..< self.letterGroupButtons.count {
+                                self.letterGroupButtons[i].setTitle(letterGroupStrings[i], for: .normal)
+                            }
+                        }
                     }
                 }
             }
